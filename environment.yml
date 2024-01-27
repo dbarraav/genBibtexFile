@@ -1,0 +1,13 @@
+# name: genBibFile2
+channels:
+  - conda-forge
+dependencies:
+  # - pybtex
+  # - pdf2bib
+  - habanero
+  - pandas
+  - openpyxl
+  - pip:
+    - pypdf
+    - crossref-commons
+    - pdfminer.six
