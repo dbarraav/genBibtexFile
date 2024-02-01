@@ -5,15 +5,30 @@ import re
 from openpyxl import Workbook
 import sys
 from pypdf import PdfReader
-import pandas as pd
+# import pandas as pd
+import argparse
 
-pdf_dir = sys.argv[1]
-output_file = 'bibtexEntries.txt'
-excel_file = 'bibtexEntries.xlsx'
+
+# pdf_dir = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument("inputDir", type=str, help="convert pdf in input directory to bibtex file")
+parser.add_argument("-t", "--test", help="produce outfile for test", action="store_true")
+
+args = parser.parse_args()
+pdfDir = args.inputDir 
+
+if args.test:
+    output_file = 'Tests/bibtexEntries.txt'
+    excel_file = 'Tests/bibtexEntries.xlsx'
+else:
+
+    output_file = os.path.join(pdfDir, 'bibtexEntries.txt')
+    excel_file = os.path.join(pdfDir, 'bibtexEntries.xlsx')
+                        
 # pdf_folder = '/path/to/pdf/folder'
 
 
-pdf_files = [os.path.join(pdf_dir, f) for f in os.listdir(pdf_dir) if f.endswith('.pdf')]
+pdf_files = [os.path.join(pdfDir, f) for f in os.listdir(pdfDir) if f.endswith('.pdf')]
 print('There are a total of {} articles in PDF format'.format(len(pdf_files)))
 # doi_re = re.compile(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', re.IGNORECASE)
 # r'\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b'
@@ -54,7 +69,7 @@ with open(output_file, 'w') as f:
         try:
             bibtexEntry = cn.content_negotiation(ids=doi, format="bibentry")
             # print(bibtexEntry)
-            print(j)
+            
             # Split the string into lines
             fields = re.split(r',(?=\s\w+=)', bibtexEntry)
 
@@ -69,42 +84,43 @@ with open(output_file, 'w') as f:
 
                     # Write the field to the file
                     f.write(field + '\n')
-
+            if j%5==0:
+                print(j)
         except:
             continue
         f.write("\n")
     
 
 
-def parse_bibtex(file):
-    with open(file, 'r') as f:
-        content = f.read()
-    entries = content.split('\n@')
+# def parse_bibtex(file):
+#     with open(file, 'r') as f:
+#         content = f.read()
+#     entries = content.split('\n@')
 
-    data = []
-    for entry in entries:
-        title = re.search(r'title={([^}]*)}', entry)
-        author = re.search(r'author={([^}]*)}', entry)
-        year = re.search(r'year={([^}]*)}', entry)
-        doi = re.search(r'DOI={([^}]*)}', entry)
+#     data = []
+#     for entry in entries:
+#         title = re.search(r'title={([^}]*)}', entry)
+#         author = re.search(r'author={([^}]*)}', entry)
+#         year = re.search(r'year={([^}]*)}', entry)
+#         doi = re.search(r'DOI={([^}]*)}', entry)
 
-        data.append({
-            'title': title.group(1) if title else None,
-            'author': author.group(1) if author else None,
-            'year': year.group(1) if year else None,
-            'DOI': doi.group(1) if doi else None
-        })
+#         data.append({
+#             'title': title.group(1) if title else None,
+#             'author': author.group(1) if author else None,
+#             'year': year.group(1) if year else None,
+#             'DOI': doi.group(1) if doi else None
+#         })
 
-    return data
+#     return data
 
 
-# Parse the BibTeX entries
-data = parse_bibtex(output_file)
+# # Parse the BibTeX entries
+# data = parse_bibtex(output_file)
 
-# Create a DataFrame
-df = pd.DataFrame(data)
+# # Create a DataFrame
+# df = pd.DataFrame(data)
 
-# Write to an Excel file
-df.to_excel(excel_file, index=False, engine='openpyxl')
+# # Write to an Excel file
+# df.to_excel(excel_file, index=False, engine='openpyxl')
 
 

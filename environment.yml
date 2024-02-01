@@ -1,4 +1,4 @@
-# name: genBibFile2
+name: genBibFile2
 channels:
   - conda-forge
 dependencies:

@@ -1,10 +1,21 @@
 import sys
 import os
+import shutil
 import re
 from collections import defaultdict
+import argparse
+
 
 # Directory containing the initial text files
-directory = sys.argv[1]
+parser = argparse.ArgumentParser()
+parser.add_argument("inputDir", type=str, help="convert pdf in input directory to bibtex file")
+# parser.add_argument("-t", "--test", help="produce outfile for test", action="store_true")
+
+args = parser.parse_args()
+directory= args.inputDir 
+
+
+# directory = sys.argv[1]
 parentDir = os.path.dirname(directory)
 
 # Dictionary to store the bibtex entries
@@ -15,7 +26,7 @@ pattern = re.compile(r'@(\w+){([^,]+),([^@]+)}', re.DOTALL)
 
 # Iterate over each file in the directory
 for filename in os.listdir(directory):
-    if filename.endswith('.txt'):
+    if filename.endswith('.txt') and "bibtexEntries" in filename:
         with open(os.path.join(directory, filename), 'r') as file:
             content = file.read()
             # Find all bibtex entries in the file
@@ -24,7 +35,9 @@ for filename in os.listdir(directory):
                 # Extract the citekey and the entry
                 entry_type, citekey, entry = match
                 # Store the entry in the dictionary
-                bibtex_dict[citekey].append(f'@{entry_type}{{\n{citekey},\n{entry}}}')
+                # bibtex_dict[citekey].append(f'@{entry_type}{{{citekey},\n{entry}}}')
+                bibtex_dict[citekey].append(f'@{entry_type}{{{citekey},\n{entry.strip()}}}')
+                
 
 # Dictionary to store the final bibtex entries
 final_bibtex_dict = {}
@@ -48,6 +61,20 @@ for citekey, entries in bibtex_dict.items():
 sorted_entries = sorted(final_bibtex_dict.items())
 
 # Write the sorted entries to the final text file
-with open(os.path.join(directory, 'final_bibtex_entries.txt'), 'w') as file:
+bibtexFilePath = os.path.join(directory, 'final_bibtex_entries.txt')
+with open(bibtexFilePath, 'w') as file:
     for citekey, entry in sorted_entries:
         file.write(entry + '\n\n')
+
+shutil.copy(bibtexFilePath, os.path.join(directory, 'final_bibtex_entries.bib'))
+
+# def copy_and_change_ext(src, dst, new_extension):
+#     # Get the base name of the source file without the extension
+#     base = os.path.splitext(src)[0]
+#     # Add the new extension to the destination path
+#     dst_with_new_ext = base + new_extension
+#     # Copy the file
+#     shutil.copy(src, dst_with_new_ext)
+#     return dst_with_new_ext
+
+# new_file = copy_and_change_ext(bibtexFilePath, dst, ".bib")
