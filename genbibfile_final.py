@@ -34,7 +34,10 @@ print('There are a total of {} articles in PDF format'.format(len(pdf_files)))
 # r'\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b'
 
 # doi_re = re.compile(r'\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b', re.IGNORECASE)
-doi_re = re.compile(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', re.IGNORECASE)
+# doi_re = re.compile(r'10\.\d{4,9}/[-._;()/:A-Z0-9]+', re.IGNORECASE) 
+
+doi_re = re.compile(r'/^10.\d{4,9}/[-._;()/:A-Z0-9]+$/i', re.IGNORECASE) # from Crossref
+
 dois = []
 titles = []
 for pdf_file in pdf_files:
