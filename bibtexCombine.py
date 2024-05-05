@@ -83,6 +83,7 @@ with open(bibtexFilePath, 'w') as file:
     for citekey, entry in sorted_entries:
         file.write(entry + '\n\n')
 
+print('Final Bibtex entries were written from all subdirectories in {}'.format(directory))
 # shutil.copy(bibtexFilePath, os.path.join(directory, 'final_bibtex_entries.bib'))
 
 # def copy_and_change_ext(src, dst, new_extension):
