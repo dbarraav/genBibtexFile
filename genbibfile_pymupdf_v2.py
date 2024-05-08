@@ -26,7 +26,7 @@ def extract_doi(pdf_path, doiPatternCounter=0):
         pattern = r"\b10\.\d+\/[\w.-]*\/\w+\b" # 4th RE given by AI
     else:
         # print('DOI 4 needs to be used')
-        pattern = r"/^10.\d{4,9}/[-._;()/:A-Za-z0-9]+$/i"#given by edited RE by AI
+        pattern = r"/^10.\d{4,9}/[-._;()/:A-Za-z0-9]+$"#given by edited RE by AI
     # Create a regular expression object
     regex = re.compile(pattern, re.IGNORECASE)
 
@@ -38,6 +38,7 @@ def extract_doi(pdf_path, doiPatternCounter=0):
         # Search for the DOI
         match = regex.search(text)
         if match:
+            print(doiPatternCounter)
             return match.group()
 
     if doiPatternCounter <=3:
@@ -65,8 +66,8 @@ def get_dois_from_directory(directory_path):
         
         if filename.endswith('.pdf'):
             # print(filename)
-            if filename in foundArticleDOIs.keys():
-                continue
+            # if filename in foundArticleDOIs.keys():
+            #     print("This DOI was found before")
             pdf_path = os.path.join(directory_path, filename)
             doi = extract_doi(pdf_path)
             if doi:

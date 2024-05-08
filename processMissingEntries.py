@@ -45,7 +45,7 @@ def process_file(file_path, author_names):
                     # Keep the line unchanged
                     modified_lines.append(line)
                     if 'arXiv' in doi:
-                        print('Yes this is a arxiv article: {}'.format(doi))
+                        # print('Yes this is a arxiv article: {}'.format(doi))
                         arxivDOIs.append(doi)
                         arxivNames.append(author_name)
                     else:
@@ -63,6 +63,7 @@ def process_file(file_path, author_names):
         else:
             # Invalid line format, keep it unchanged
             modified_lines.append(line)
+    print("Number of arXiv article(s) processed for this directory: {}".format(len(arxivDOIs)))
 
     # Add new lines for authors not found
     for author_name in author_names:
