@@ -5,6 +5,7 @@ import argparse
 from habanero import cn
 import subprocess
 import processMissingEntries
+from collections import Counter
 
 def extract_doi(pdf_path, doiPatternCounter=0):
     # Open the PDF file
@@ -30,8 +31,12 @@ def extract_doi(pdf_path, doiPatternCounter=0):
     # Create a regular expression object
     regex = re.compile(pattern, re.IGNORECASE)
 
+    pageCount = 2
+    if doc.page_count>2:
+        pageCount = 3
+
     # Load the first page
-    for i in range(3):
+    for i in range(pageCount):
         page = doc.load_page(i)  # zero-based index
         text = page.get_text()  # get the text content
 
@@ -47,7 +52,47 @@ def extract_doi(pdf_path, doiPatternCounter=0):
     else:
         return None
 
-def get_dois_from_directory(directory_path):
+def extract_doi2(pdf_path):
+    # Open the PDF file
+    doc = fitz.open(pdf_path)
+
+    # Define the regular expression patterns for a DOI
+    patterns = [
+        r"\b10\.\d+\/[\w.-]+\b", # given edited RE from AI
+        r"\b10\.\d+\/[\w.-]+\w+\b", # second edited RE given by AI
+        r"\b10\.\d+\/[\w.-]*\w\b", # 3rd RE given by AI
+        r"\b10\.\d+\/[\w.-]*\/\w+\b", # 4th RE given by AI
+        r"^10\.\d{4,9}[-._;()/:A-Za-z0-9]+$" # edited RE to work with Python's re module
+    ]
+
+    pageCount = 2
+    if doc.page_count>2:
+        pageCount = 3
+
+    # Initialize a list to store all DOIs found
+    all_dois = []
+
+    # Load the first page
+    for i in range(pageCount):
+        page = doc.load_page(i)  # zero-based index
+        text = page.get_text()  # get the text content
+
+        # Search for the DOI using each pattern
+        for pattern in patterns:
+            regex = re.compile(pattern, re.IGNORECASE)
+            matches = regex.findall(text)
+            all_dois.extend(matches)
+
+    # Find the most common DOI
+    counter = Counter(all_dois)
+    most_common_doi = counter.most_common(1)[0][0] if counter else None
+
+    print('The DOI found for {} was {}'.format(os.path.basename(os.path.normpath(pdf_path)), most_common_doi))
+    # print(most_common_doi)
+
+    return most_common_doi
+
+def get_dois_from_directory(directory_path, option):
     dois = {}
     missingEntries= []
 
@@ -56,6 +101,9 @@ def get_dois_from_directory(directory_path):
 
     foundDOIsPathFile = os.path.join(directory_path, 'foundDOIs.txt')
     foundArticleDOIs = {}
+    if option and os.path.exists(foundDOIsPathFile):
+        os.remove(foundDOIsPathFile)
+        
     if os.path.exists(foundDOIsPathFile):
         with open(foundDOIsPathFile, "r") as file:
             for line in file:
@@ -69,20 +117,20 @@ def get_dois_from_directory(directory_path):
             # if filename in foundArticleDOIs.keys():
             #     print("This DOI was found before")
             pdf_path = os.path.join(directory_path, filename)
-            doi = extract_doi(pdf_path)
+            doi = extract_doi2(pdf_path)
             if doi:
                 dois[filename] = doi
             else:
                 missingEntries.append(filename)
 
-    foundArticleDOIsfinal = {**foundArticleDOIs, **dois}
+    foundArticleDOIsfinal = {**dois, **foundArticleDOIs}
     if not os.path.exists(foundDOIsPathFile):
         if len(foundArticleDOIsfinal) != 0:
             with open(foundDOIsPathFile, "a") as file:
                 for key in sorted(foundArticleDOIsfinal):
                     file.write(f'{key}, {foundArticleDOIsfinal[key]}\n')
 
-    return missingEntries, dois, foundArticleDOIs
+    return missingEntries, foundArticleDOIsfinal, foundArticleDOIs
 
 def writeBibtex(pdfDir, output_file, dois):
     outputFilePath = os.path.join(pdfDir, output_file)
@@ -130,6 +178,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("inputDir", type=str, help="convert pdf in input directory to bibtex file")
 parser.add_argument("-s", "--single", help="single directory input path", action="store_true")
 parser.add_argument("-t", "--test", help="produce outfile for test", action="store_true")
+parser.add_argument("-d", "--delete", help="delete foundDOIs.txt file", action="store_true")
 
 args = parser.parse_args()
 pdfDir = args.inputDir 
@@ -143,7 +192,7 @@ else:
     # excel_file = os.path.join(pdfDir, 'bibtexEntries.xlsx')
 
 if singleDir:
-    missingEntries, dois, foundArticleDOIs = get_dois_from_directory(pdfDir)
+    missingEntries, dois, foundArticleDOIs = get_dois_from_directory(pdfDir, args.delete)
     missingEntriesFilePath = os.path.join(pdfDir, "missingDOIs.txt")
     if not os.path.exists(missingEntriesFilePath):
         open(missingEntriesFilePath, "w").close()
@@ -186,7 +235,7 @@ else:
     for counter1, subDir in enumerate(subDirs):
         # if counter1 in [0, 1, 2, 3, 4, 5, 6, 7]:
         #     continue
-        missingEntries, dois, foundArticleDOIs = get_dois_from_directory(subDir)
+        missingEntries, dois, foundArticleDOIs = get_dois_from_directory(subDir, args.delete)
         missingEntriesFilePath = os.path.join(subDir, "missingDOIs.txt")
         if not os.path.exists(missingEntriesFilePath):
             open(missingEntriesFilePath, "w").close()
