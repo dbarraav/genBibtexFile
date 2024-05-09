@@ -179,6 +179,7 @@ parser.add_argument("inputDir", type=str, help="convert pdf in input directory t
 parser.add_argument("-s", "--single", help="single directory input path", action="store_true")
 parser.add_argument("-t", "--test", help="produce outfile for test", action="store_true")
 parser.add_argument("-d", "--delete", help="delete foundDOIs.txt file", action="store_true")
+parser.add_argument("-c", "--combine", help="combine bibtex entries with all others", action="store_true")
 
 args = parser.parse_args()
 pdfDir = args.inputDir 
@@ -262,4 +263,7 @@ else:
 
     subprocess.call(['python', 'bibtexCombine.py', pdfDir])
 
+if args.combine:
+    parentDir = os.path.dirname(pdfDir)
+    subprocess.call(['python', 'bibtexCombine.py', parentDir])
 # NOTE: if OneDrive is open and syncing is on, it may cause a TimeOut error. Make sure to stop syncing OneDrive to avoid this issue
