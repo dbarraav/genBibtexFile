@@ -78,13 +78,14 @@ for citekey, entries in bibtex_dict.items():
 sorted_entries = sorted(final_bibtex_dict.items())
 
 # Write the sorted entries to the final text file
-bibtexFilePath = os.path.join(directory, 'final_bibtex_entries.txt')
+bibtexFilePath = os.path.join(directory, 'finalBibtexEntries.txt')
 with open(bibtexFilePath, 'w') as file:
     for citekey, entry in sorted_entries:
         file.write(entry + '\n\n')
 
 print('Final Bibtex entries were written from all subdirectories in {}'.format(directory))
 # shutil.copy(bibtexFilePath, os.path.join(directory, 'final_bibtex_entries.bib'))
+shutil.copyfile(os.path.join(directory, 'finalBibtexEntries.txt'), os.path.join(directory, 'finalBibtexEntries.bib'))
 
 # def copy_and_change_ext(src, dst, new_extension):
 #     # Get the base name of the source file without the extension
