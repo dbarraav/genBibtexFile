@@ -9,11 +9,12 @@ import argparse
 # Directory containing the initial text files
 parser = argparse.ArgumentParser()
 parser.add_argument("inputDir", type=str, help="convert pdf in input directory to bibtex file")
+parser.add_argument("-t", "--tagged", help="single directory input path", action="store_true")
+
 # parser.add_argument("-t", "--test", help="produce outfile for test", action="store_true")
 
 args = parser.parse_args()
 directory= args.inputDir 
-
 
 # directory = sys.argv[1]
 parentDir = os.path.dirname(directory)
@@ -27,10 +28,17 @@ pattern = re.compile(r'@(\w+){([^,]+),([^@]+)}', re.DOTALL)
 # Iterate over each file in the directory
 # for filename in os.listdir(directory):
 #     if filename.endswith('.txt') and "bibtexEntries" in filename:
+inputFileName = "bibtexEntries"
+outputFileName = "finalBibtexEntries"
+
+if args.tagged:
+    inputFileName = "updatedBibtexEntries"
+    outputFileName = "finalBibtexEntries_tagged"
+
 
 for root, dirs, files in os.walk(directory):
     for filename in files:
-        if filename.endswith('.txt') and "bibtexEntries" in filename:
+        if filename.endswith('.txt') and inputFileName in filename:
             with open(os.path.join(root, filename), 'r') as file:
                 content = file.read()
                 # Find all bibtex entries in the file
@@ -78,14 +86,14 @@ for citekey, entries in bibtex_dict.items():
 sorted_entries = sorted(final_bibtex_dict.items())
 
 # Write the sorted entries to the final text file
-bibtexFilePath = os.path.join(directory, 'finalBibtexEntries.txt')
+bibtexFilePath = os.path.join(directory, outputFileName+'.txt')
 with open(bibtexFilePath, 'w') as file:
     for citekey, entry in sorted_entries:
         file.write(entry + '\n\n')
 
 print('Final Bibtex entries were written from all subdirectories in {}'.format(directory))
 # shutil.copy(bibtexFilePath, os.path.join(directory, 'final_bibtex_entries.bib'))
-shutil.copyfile(os.path.join(directory, 'finalBibtexEntries.txt'), os.path.join(directory, 'finalBibtexEntries.bib'))
+shutil.copyfile(os.path.join(directory, outputFileName+'.txt'), os.path.join(directory, outputFileName+'.bib'))
 
 # def copy_and_change_ext(src, dst, new_extension):
 #     # Get the base name of the source file without the extension

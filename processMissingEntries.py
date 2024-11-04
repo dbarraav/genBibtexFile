@@ -95,4 +95,4 @@ def processArXivDOIs(pdfDir, output_file, arxivDOIs):
 
         bibtexEntryNoIndent = '\n'.join(lines)
         with open(bibtexEntriesPath, 'a') as file:
-            file.write(bibtexEntryNoIndent)
+            file.write(bibtexEntryNoIndent+'\n\n')
